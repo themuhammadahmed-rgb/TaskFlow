@@ -6,6 +6,7 @@ import com.example.taskflow.data.entity.TaskEntity
 import android.content.Context
 import androidx.room.Room
 import com.example.taskflow.data.TaskDao
+
 @Database(entities = [TaskEntity::class], version = 1)
 abstract class TaskDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao

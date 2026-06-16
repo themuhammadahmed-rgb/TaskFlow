@@ -6,8 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.taskflow.data.database.TaskDatabase
 import com.example.taskflow.data.entity.TaskEntity
 import com.example.taskflow.repository.TaskRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -17,8 +20,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
 
     val allTasks: StateFlow<List<TaskEntity>> = repository.getAllTasks().stateIn(
-            viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
-        )
+        viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
+    )
 
     fun addTask(task: TaskEntity) {
         viewModelScope.launch {
@@ -38,9 +41,23 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private val _selectedTask = MutableStateFlow<TaskEntity?>(null)
+    val selectedTask: StateFlow<TaskEntity?> = _selectedTask.asStateFlow()
+
     fun getTaskById(id: Int) {
         viewModelScope.launch {
-            repository.getTaskById(id)
+            _selectedTask.value = repository.getTaskById(id)
         }
+    }
+
+    val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun searchTasks(query: String): Flow<List<TaskEntity>> {
+        return repository.searchTasks(query)
     }
 }

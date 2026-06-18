@@ -15,12 +15,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
+
     private val database = TaskDatabase.getDatabase(application)
     private val repository = TaskRepository(database.taskDao())
 
-
     val allTasks: StateFlow<List<TaskEntity>> = repository.getAllTasks().stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
     )
 
     fun addTask(task: TaskEntity) {
@@ -50,7 +52,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    val _searchQuery = MutableStateFlow("")
+    private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     fun onSearchQueryChange(query: String) {

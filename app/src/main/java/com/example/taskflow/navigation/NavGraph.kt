@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.taskflow.ui.AddEditTaskScreen
 import com.example.taskflow.ui.TaskListScreen
 import com.example.taskflow.viewmodel.TaskViewModel
 import com.example.taskflow.viewmodel.TaskViewModelFactory
@@ -46,7 +47,11 @@ fun TaskFlowNavGraph() {
             )
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getInt(NavRoutes.TASK_ID_ARG) ?: 0
-
+            AddEditTaskScreen(
+                taskId = taskId,
+                onNavigateBack = { navController.popBackStack() },
+                viewModel = viewModel
+            )
         }
     }
 }

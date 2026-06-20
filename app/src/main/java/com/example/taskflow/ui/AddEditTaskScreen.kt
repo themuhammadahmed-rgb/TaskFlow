@@ -69,28 +69,6 @@ fun AddEditTaskScreen(
                             contentDescription = "Close"
                         )
                     }
-                },
-                actions = {
-                    TextButton(onClick = {
-                        if (title.isBlank()) {
-                            titleError = true
-                        } else {
-                            viewModel.addTask(
-                                TaskEntity(
-                                    title = title,
-                                    description = description.ifBlank { null },
-                                    priority = priority,
-                                    dueDate = dueDate,
-                                    category = category.ifBlank { null },
-                                    createdAt = System.currentTimeMillis()
-                                )
-                            )
-                            onNavigateBack()
-                        }
-
-                    }) {
-                        Text("Save", color = Color(0xFF2B3DE7))
-                    }
                 }
             )
         }

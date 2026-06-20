@@ -22,40 +22,43 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import com.example.taskflow.viewmodel.TaskViewModel
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.taskflow.data.entity.TaskEntity
+import com.example.taskflow.viewmodel.TaskViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -63,7 +66,9 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(
-    onAddTask: () -> Unit, onTaskClick: (Int) -> Unit, viewModel: TaskViewModel
+    onAddTask: () -> Unit,
+    onTaskClick: (Int) -> Unit,
+    viewModel: TaskViewModel
 ) {
     val tasks by viewModel.allTasks.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -71,21 +76,27 @@ fun TaskListScreen(
     var deletedTask by remember { mutableStateOf<TaskEntity?>(null) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(title = {
-                Text(
-                    text = "Task Flow", fontWeight = FontWeight.Bold, color = Color(0xFF2B3DE7)
-                )
-            }, actions = {
-                IconButton(onClick = {}) {
-                    Icon(
-                        Icons.Default.Search, contentDescription = "Search"
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "TaskFlow",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2B3DE7)
                     )
+                },
+                actions = {
+                    IconButton(onClick = {}) {
+                        Icon(Icons.Default.Search, contentDescription = "Search")
+                    }
                 }
-            })
-        }, floatingActionButton = {
+            )
+        },
+        floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddTask, containerColor = Color(0xFF1A1A2E)
+                onClick = onAddTask,
+                containerColor = Color(0xFF1A1A2E)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -93,7 +104,8 @@ fun TaskListScreen(
                     tint = Color.White
                 )
             }
-        }) { paddingValues ->
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -102,13 +114,11 @@ fun TaskListScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp), colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF6650A4)
-                ), shape = RoundedCornerShape(16.dp)
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF6650A4)),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Stay in Flow",
                         color = Color.White,
@@ -132,9 +142,11 @@ fun TaskListScreen(
                     )
                 }
             }
+
             if (tasks.isEmpty()) {
                 Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -168,12 +180,26 @@ fun TaskListScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(tasks, key = { it.id }) { task ->
-                        val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = {
-                            if (it == SwipeToDismissBoxValue.EndToStart) {
-                                viewModel.deleteTask(task)
-                                true
-                            } else false
-                        }, positionalThreshold = { it * 0.5f })
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = {
+                                if (it == SwipeToDismissBoxValue.EndToStart) {
+                                    deletedTask = task
+                                    viewModel.deleteTask(task)
+                                    scope.launch {
+                                        val result = snackbarHostState.showSnackbar(
+                                            message = "Task deleted",
+                                            actionLabel = "Undo",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                        if (result == SnackbarResult.ActionPerformed) {
+                                            deletedTask?.let { viewModel.addTask(it) }
+                                        }
+                                    }
+                                    true
+                                } else false
+                            },
+                            positionalThreshold = { it * 0.5f }
+                        )
                         SwipeToDismissBox(
                             state = dismissState,
                             enableDismissFromStartToEnd = false,
@@ -192,13 +218,15 @@ fun TaskListScreen(
                                         tint = Color.White
                                     )
                                 }
-                            }) {
+                            }
+                        ) {
                             TaskCard(
                                 task = task,
                                 onTaskClick = { onTaskClick(task.id) },
                                 onCheckClick = {
                                     viewModel.updateTask(task.copy(isCompleted = !task.isCompleted))
-                                })
+                                }
+                            )
                         }
                     }
                 }
@@ -235,9 +263,7 @@ fun TaskCard(
         Checkbox(
             checked = task.isCompleted,
             onCheckedChange = { onCheckClick() },
-            colors = CheckboxDefaults.colors(
-                checkedColor = Color(0xFF2B3DE7)
-            )
+            colors = CheckboxDefaults.colors(checkedColor = Color(0xFF2B3DE7))
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -245,21 +271,23 @@ fun TaskCard(
                 text = task.title,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                textDecoration = if (task.isCompleted)
+                    TextDecoration.LineThrough else TextDecoration.None,
                 color = if (task.isCompleted) Color.Gray else Color.Black
             )
             if (task.dueDate != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = SimpleDateFormat(
-                        "MM dd, yyyy",
-                        Locale.getDefault()
-                    ).format(Date(task.dueDate)), fontSize = 12.sp, color = Color.Gray
+                    text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                        .format(Date(task.dueDate)),
+                    fontSize = 12.sp,
+                    color = Color.Gray
                 )
             }
         }
         Surface(
-            color = priorityColor.copy(alpha = 0.15f), shape = RoundedCornerShape(20.dp)
+            color = priorityColor.copy(alpha = 0.15f),
+            shape = RoundedCornerShape(20.dp)
         ) {
             Text(
                 text = priorityLabel,

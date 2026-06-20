@@ -1,16 +1,24 @@
 package com.example.taskflow.navigation
 
+import android.app.Application
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.taskflow.viewmodel.TaskViewModel
+import com.example.taskflow.viewmodel.TaskViewModelFactory
 
 @Composable
 fun TaskFlowNavGraph() {
     val navController = rememberNavController()
-
+    val context = LocalContext.current
+    val viewModel: TaskViewModel = viewModel(
+        factory = TaskViewModelFactory(context.applicationContext as Application)
+    )
     NavHost(
         navController = navController,
         startDestination = NavRoutes.TaskList.route

@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.taskflow.ui.TaskListScreen
 import com.example.taskflow.viewmodel.TaskViewModel
 import com.example.taskflow.viewmodel.TaskViewModelFactory
 
@@ -24,6 +25,15 @@ fun TaskFlowNavGraph() {
         startDestination = NavRoutes.TaskList.route
     ) {
         composable(route = NavRoutes.TaskList.route) {
+            TaskListScreen(
+                onAddTask = {
+                    navController.navigate(NavRoutes.AddEditTask.createRoute())
+                },
+                onTaskClick = { taskId ->
+                    navController.navigate(NavRoutes.AddEditTask.createRoute(taskId))
+                },
+                viewModel = viewModel
+            )
 
         }
         composable(

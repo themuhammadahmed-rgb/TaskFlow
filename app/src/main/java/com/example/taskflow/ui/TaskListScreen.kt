@@ -45,7 +45,7 @@ fun TaskListScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Task FLow",
+                        text = "Task Flow",
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2B3DE7)
                     )

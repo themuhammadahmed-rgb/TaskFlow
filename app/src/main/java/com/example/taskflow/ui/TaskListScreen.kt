@@ -1,14 +1,20 @@
 package com.example.taskflow.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,6 +22,9 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -30,10 +39,16 @@ import com.example.taskflow.viewmodel.TaskViewModel
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.taskflow.data.entity.TaskEntity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,7 +131,7 @@ fun TaskListScreen(
                     )
                 }
             }
-            if (tasks.isEmpty()){
+            if (tasks.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -146,6 +161,95 @@ fun TaskListScreen(
                         )
                     }
                 }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(tasks) { task ->
+                        TaskCard(
+                            task = task,
+                            onTaskClick = { onTaskClick(task.id) },
+                            onCheckClick = {
+                                viewModel.updateTask(task.copy(isCompleted = !task.isCompleted))
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TaskCard(
+    task: TaskEntity,
+    onTaskClick: () -> Unit,
+    onCheckClick: () -> Unit
+) {
+    val priorityColor = when (task.priority) {
+        0 -> Color(0xFF4CAF50)
+        1 -> Color(0xFF2B3DE7)
+        else -> Color(0xFFE53935)
+    }
+    val priorityLabel = when (task.priority) {
+        0 -> "Low"
+        1 -> "Medium"
+        else -> "High"
+    }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onTaskClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = task.isCompleted,
+                onCheckedChange = { onCheckClick() },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = Color(0xFF2B3DE7)
+                )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = task.title,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    textDecoration = if (task.isCompleted)
+                        TextDecoration.LineThrough else TextDecoration.None,
+                    color = if (task.isCompleted) Color.Gray else Color.Black
+                )
+                if (task.dueDate != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = SimpleDateFormat("MM dd, yyyy", Locale.getDefault())
+                            .format(Date(task.dueDate)),
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+            Surface(
+                color = priorityColor.copy(alpha = 0.15f),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text(
+                    text = priorityLabel,
+                    color = priorityColor,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
             }
         }
     }

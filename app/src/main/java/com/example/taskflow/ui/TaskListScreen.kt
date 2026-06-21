@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CardDefaults
@@ -31,6 +32,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -74,6 +76,9 @@ fun TaskListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var deletedTask by remember { mutableStateOf<TaskEntity?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchVisible by remember { mutableStateOf(false) }
+
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -87,9 +92,10 @@ fun TaskListScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = { isSearchVisible = !isSearchVisible }) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
                     }
+
                 }
             )
         },
@@ -142,8 +148,44 @@ fun TaskListScreen(
                     )
                 }
             }
+            if (isSearchVisible) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text(text = "Search Tasks...") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear"
+                                )
+                            }
+                        }
+                    },
+                    singleLine = true
+                )
+            }
 
-            if (tasks.isEmpty()) {
+            val filteredTask = if (searchQuery.isBlank()) {
+                tasks
+            } else {
+                tasks.filter {
+                    it.title.contains(searchQuery, ignoreCase = true) ||
+                            it.description?.contains(searchQuery, ignoreCase = true) == true
+                }
+            }
+
+            if (filteredTask.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -179,7 +221,7 @@ fun TaskListScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(tasks, key = { it.id }) { task ->
+                    items(filteredTask, key = { it.id }) { task ->
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = {
                                 if (it == SwipeToDismissBoxValue.EndToStart) {

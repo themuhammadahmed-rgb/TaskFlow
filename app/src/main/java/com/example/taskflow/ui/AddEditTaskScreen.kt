@@ -12,8 +12,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -22,7 +25,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.taskflow.data.entity.TaskEntity
 import com.example.taskflow.viewmodel.TaskViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +60,7 @@ fun AddEditTaskScreen(
     var dueDate by remember { mutableStateOf<Long?>(null) }
     var category by remember { mutableStateOf("") }
     var titleError by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     // Load existing task if editing
     LaunchedEffect(taskId) {
@@ -171,6 +180,59 @@ fun AddEditTaskScreen(
                             selectedLabelColor = color
                         )
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Due Date",
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+
+            OutlinedTextField(
+                value = if (dueDate != null)
+                    SimpleDateFormat(
+                        "MM dd, yyyy",
+                        Locale.getDefault()
+                    ).format(Date(dueDate!!))
+                else "",
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Select due Date") },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Pick Date"
+                        )
+                    }
+                }
+            )
+            if (showDatePicker) {
+                val datePickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = dueDate ?: System.currentTimeMillis()
+                )
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            dueDate = datePickerState.selectedDateMillis
+                            showDatePicker = false
+                        }) {
+                            Text("OK")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDatePicker = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
                 }
             }
 

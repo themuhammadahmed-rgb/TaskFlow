@@ -28,6 +28,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -78,6 +80,7 @@ fun TaskListScreen(
     var deletedTask by remember { mutableStateOf<TaskEntity?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var isSearchVisible by remember { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf("All") }
 
 
     Scaffold(
@@ -175,15 +178,38 @@ fun TaskListScreen(
                     singleLine = true
                 )
             }
-
-            val filteredTask = if (searchQuery.isBlank()) {
-                tasks
-            } else {
-                tasks.filter {
-                    it.title.contains(searchQuery, ignoreCase = true) ||
-                            it.description?.contains(searchQuery, ignoreCase = true) == true
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf("All", "Active", "Completed").forEach { filter ->
+                    FilterChip(
+                        selected = selectedFilter == filter,
+                        onClick = { selectedFilter = filter },
+                        label = { Text(text = filter) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color(0xFF2B3DE7).copy(alpha = 0.15f),
+                            selectedLabelColor = Color(0xFF2B3DE7)
+                        )
+                    )
                 }
             }
+
+            val filteredTask = tasks
+                .filter { task ->
+                    when (selectedFilter) {
+                        "Active" -> !task.isCompleted
+                        "Completed" -> task.isCompleted
+                        else -> true
+                    }
+                }
+                .filter { task ->
+                    if (searchQuery.isBlank()) true
+                    else task.title.contains(searchQuery, ignoreCase = true) ||
+                            task.description?.contains(searchQuery, ignoreCase = true) == true
+                }
 
             if (filteredTask.isEmpty()) {
                 Box(

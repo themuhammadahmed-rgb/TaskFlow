@@ -11,6 +11,7 @@ sealed class NavRoutes(val route: String) {
         fun createRoute(taskId: Int = 0) = "add_edit_task?taskId=$taskId"
     }
 
+
     companion object {
         const val TASK_ID_ARG = "taskId"
     }

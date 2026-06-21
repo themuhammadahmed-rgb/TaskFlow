@@ -201,7 +201,7 @@ fun AddEditTaskScreen(
                 else "",
                 onValueChange = {},
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Select due Date") },
+                placeholder = { Text("Select Due Date") },
                 readOnly = true,
                 trailingIcon = {
                     IconButton(onClick = { showDatePicker = true }) {

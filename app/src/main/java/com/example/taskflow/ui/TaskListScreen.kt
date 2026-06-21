@@ -275,6 +275,17 @@ fun TaskCard(
                     TextDecoration.LineThrough else TextDecoration.None,
                 color = if (task.isCompleted) Color.Gray else Color.Black
             )
+            val isOverdue =
+                task.dueDate != null && !task.isCompleted && task.dueDate < System.currentTimeMillis()
+            if (isOverdue) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Overdue",
+                    fontSize = 11.sp,
+                    color = Color(0xFFE53935),
+                    fontWeight = FontWeight.Medium
+                )
+            }
             if (task.dueDate != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

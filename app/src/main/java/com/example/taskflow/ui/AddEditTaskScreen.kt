@@ -22,9 +22,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.taskflow.data.entity.TaskEntity
 import com.example.taskflow.viewmodel.TaskViewModel
-import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,12 +53,31 @@ fun AddEditTaskScreen(
     var category by remember { mutableStateOf("") }
     var titleError by remember { mutableStateOf(false) }
 
+    // Load existing task if editing
+    LaunchedEffect(taskId) {
+        if (taskId > 0) {
+            viewModel.getTaskById(taskId)
+        }
+    }
+
+    val selectedTask by viewModel.selectedTask.collectAsState()
+
+    LaunchedEffect(selectedTask) {
+        selectedTask?.let {
+            title = it.title
+            description = it.description ?: ""
+            priority = it.priority
+            dueDate = it.dueDate
+            category = it.category ?: ""
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (taskId == 0) " Add Task" else "Edit Task",
+                        text = if (taskId == 0) "Add Task" else "Edit Task",
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -98,13 +117,15 @@ fun AddEditTaskScreen(
                         Text("Title is required", color = Color.Red)
                     } else {
                         Text(
-                            "${title.length}/50", modifier = Modifier.fillMaxWidth(),
+                            "${title.length}/80",
+                            modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.End
                         )
                     }
                 },
                 singleLine = true
             )
+
             Spacer(modifier = Modifier.height(12.dp))
 
             Text("Description", fontWeight = FontWeight.Medium, fontSize = 14.sp)
@@ -160,16 +181,28 @@ fun AddEditTaskScreen(
                     if (title.isBlank()) {
                         titleError = true
                     } else {
-                        viewModel.addTask(
-                            TaskEntity(
-                                title = title,
-                                description = description.ifBlank { null },
-                                priority = priority,
-                                dueDate = dueDate,
-                                category = category.ifBlank { null },
-                                createdAt = System.currentTimeMillis()
+                        if (taskId > 0 && selectedTask != null) {
+                            viewModel.updateTask(
+                                selectedTask!!.copy(
+                                    title = title,
+                                    description = description.ifBlank { null },
+                                    priority = priority,
+                                    dueDate = dueDate,
+                                    category = category.ifBlank { null }
+                                )
                             )
-                        )
+                        } else {
+                            viewModel.addTask(
+                                TaskEntity(
+                                    title = title,
+                                    description = description.ifBlank { null },
+                                    priority = priority,
+                                    dueDate = dueDate,
+                                    category = category.ifBlank { null },
+                                    createdAt = System.currentTimeMillis()
+                                )
+                            )
+                        }
                         onNavigateBack()
                     }
                 },
@@ -179,6 +212,5 @@ fun AddEditTaskScreen(
                 Text("Save Task", color = Color.White, fontSize = 16.sp)
             }
         }
-
     }
 }

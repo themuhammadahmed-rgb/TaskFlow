@@ -1,13 +1,7 @@
-# TaskFlow — Personal Task Manager
+<img width="178" height="398" alt="task" src="https://github.com/user-attachments/assets/e680853f-0cbd-473b-8b79-2174c6748a7f" /># TaskFlow — Personal Task Manager
 
 > A modern Android task management application built with Kotlin and Jetpack Compose.
 > Developed as an internship project at **Largify Solutions**.
-
----
-
-## 📸 Screenshots
-
-> Coming soon
 
 ---
 
@@ -106,11 +100,11 @@ git clone https://github.com/themuhammadahmed-rgb/TaskFlow.git
 ## 📦 Deliverables
 
 - ✅ Source code on GitHub with meaningful commit history
-- ⬜ Debug APK (API 26+)
-- ⬜ Room database schema screenshot
-- ⬜ MVVM architecture diagram
-- ⬜ Demo video (2–5 minutes covering all Must Have features)
-- ⬜ Self-review checklist
+- ✅ Debug APK (API 26+)
+- ✅ Room database schema screenshot
+- ✅ MVVM architecture diagram
+- ✅ Demo video (2–5 minutes covering all Must Have features)
+- ✅ Self-review checklist
 
 ---
 

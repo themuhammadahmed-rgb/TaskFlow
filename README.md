@@ -1,4 +1,4 @@
-<img width="178" height="398" alt="task" src="https://github.com/user-attachments/assets/e680853f-0cbd-473b-8b79-2174c6748a7f" /># TaskFlow — Personal Task Manager
+# TaskFlow — Personal Task Manager
 
 > A modern Android task management application built with Kotlin and Jetpack Compose.
 > Developed as an internship project at **Largify Solutions**.
